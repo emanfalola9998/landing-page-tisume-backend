@@ -6,12 +6,6 @@
 
     const app = express();
 
-    // Determine if local or prod
-    // const isLocal = process.env.NODE_ENV !== 'production';
-    // const FRONTEND_ORIGIN = isLocal
-    // ? 'http://localhost:5173'  // Vite default
-    // : 'https://deploy-preview-18--beerfrontend.netlify.app';  // or your Netlify domain
-
     const FRONTEND_ORIGIN = "https://landingpageaiexample.netlify.app"
 
     app.use(cors({
@@ -20,22 +14,20 @@
     credentials: true,
     }));
 
-    app.use(express.json());
 
     // Sync the model (creates table if needed)
     Service.sync();
 
-
-
 const multer = require('multer');
 const FormData = require('form-data');
-const upload = multer(); // for parsing multipart/form-data
+const upload = multer(); // handles multipart/form-data
 
+// 🔥 Put this BEFORE express.json middleware
 app.post('/api/proxy/service-submit', upload.single('data'), async (req, res) => {
   try {
     const form = new FormData();
 
-    form.append('data', req.file.buffer, { // ✅ use 'data' consistently
+    form.append('data', req.file.buffer, {
       filename: req.file.originalname,
       contentType: req.file.mimetype,
     });
@@ -46,13 +38,16 @@ app.post('/api/proxy/service-submit', upload.single('data'), async (req, res) =>
       body: form,
     });
 
-    const data = await response.text();
-    res.status(response.status).send(data);
-  } catch (error) {
-    console.error('Proxy error:', error);
+    const result = await response.text();
+    res.status(response.status).send(result);
+  } catch (err) {
+    console.error('❌ Proxy error:', err);
     res.status(500).json({ error: 'Proxy request failed' });
   }
 });
+
+// 🧨 Move this below the upload route
+app.use(express.json());
 
 
     app.post('/api/service-submit', async (req, res) => {
