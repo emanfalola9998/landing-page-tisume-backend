@@ -77,7 +77,7 @@
 
     app.post('/api/proxy/service-submit', async (req, res) => {
         try {
-            const response = await fetch('https://emmanuelfalola.app.n8n.cloud/webhook-test/beer-submit', {
+            const response = await fetch('https://ronaldo9860.app.n8n.cloud/webhook-test/beer-submit', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
