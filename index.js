@@ -24,56 +24,6 @@
     // Sync the model (creates table if needed)
     Service.sync();
 
-    // Routes
-
-    // app.get('/api/beers', async (req, res) => {
-    // const beers = await Beer.findAll();
-    // res.json(beers);
-    // });
-
-
-
-
-//     app.post('/api/beers', async (req, res) => {
-//     try {
-//         const {
-//         name,
-//         description,
-//         abv: rawAbv,
-//         image_url,
-//         ph,
-//         first_brewed
-//         } = req.body;
-
-//         // Normalize and parse ABV
-//         let abv = rawAbv;
-//         if (typeof rawAbv === 'string') {
-//         abv = rawAbv.replace(/[^\d.]/g, ''); // remove %, =, etc.
-//         }
-//         abv = parseFloat(abv);
-
-//         if (isNaN(abv)) {
-//         console.error('Invalid ABV:', rawAbv);
-//         return res.status(400).json({ error: 'Invalid ABV format' });
-//         }
-
-//         const newBeer = await Beer.create({
-//         name,
-//         description,
-//         abv,
-//         image_url,
-//         ph,
-//         first_brewed
-//         });
-
-//         res.status(201).json(newBeer);
-//     } catch (err) {
-//         console.error('❌ Error saving beer:', err);
-//         res.status(500).send('Internal Server Error');
-//     }
-// });
-
-
 
     app.post('/api/proxy/service-submit', async (req, res) => {
         try {
@@ -96,9 +46,54 @@
         }
     })
 
+    app.post('/api/service-submit', async (req, res) => {
+        try{
+            const {
+                id,
+                name,
+                icon,
+                category,
+                description,
+                aftercareDescription,
+                serviceFor,
+                duration,
+                priceType,
+                price,
+                order,
+                pricingName,
+                createdAt,
+                businessSubcategory,
+                businessId
+            } = req.body
 
+            if (!id) {
+                id = Math.random()
+            }
 
-
+            const newService = await Service.create({
+                id,
+                name,
+                icon,
+                category,
+                description,
+                aftercareDescription,
+                serviceFor,
+                duration,
+                priceType,
+                price,
+                order,
+                pricingName,
+                createdAt,
+                businessSubcategory,
+                businessId
+            });
+            res.status(201).json(newService);
+        }
+        catch (err) {
+            console.error('❌ Error saving beer:', err);
+            res.status(500).send('Internal Server Error');
+        }
+    })
 
     const PORT = process.env.PORT || 3001;  // fallback to 3001 if PORT is not set locally
 
