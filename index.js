@@ -31,7 +31,7 @@ const multer = require('multer');
 const FormData = require('form-data');
 const upload = multer(); // for parsing multipart/form-data
 
-app.post('/api/proxy/service-submit', upload.single('file'), async (req, res) => {
+app.post('/api/proxy/service-submit', upload.single('data'), async (req, res) => {
     try {
         const form = new FormData();
         form.append('file', req.file.buffer, {
