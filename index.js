@@ -32,25 +32,26 @@ const FormData = require('form-data');
 const upload = multer(); // for parsing multipart/form-data
 
 app.post('/api/proxy/service-submit', upload.single('data'), async (req, res) => {
-    try {
-        const form = new FormData();
-        form.append('file', req.file.buffer, {
-        filename: req.file.originalname,
-        contentType: req.file.mimetype,
-        });
+  try {
+    const form = new FormData();
 
-        const response = await fetch('https://ronaldo9860.app.n8n.cloud/webhook-test/service-submit', {
-        method: 'POST',
-        headers: form.getHeaders(),
-        body: form,
-        });
+    form.append('data', req.file.buffer, { // ✅ use 'data' consistently
+      filename: req.file.originalname,
+      contentType: req.file.mimetype,
+    });
 
-        const data = await response.text(); // or response.json() if appropriate
-        res.status(response.status).send(data);
-    } catch (error) {
-        console.error('Proxy error:', error);
-        res.status(500).json({ error: 'Proxy request failed' });
-    }
+    const response = await fetch('https://ronaldo9860.app.n8n.cloud/webhook-test/service-submit', {
+      method: 'POST',
+      headers: form.getHeaders(),
+      body: form,
+    });
+
+    const data = await response.text();
+    res.status(response.status).send(data);
+  } catch (error) {
+    console.error('Proxy error:', error);
+    res.status(500).json({ error: 'Proxy request failed' });
+  }
 });
 
 
