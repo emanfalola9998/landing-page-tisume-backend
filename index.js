@@ -22,56 +22,56 @@
     app.use(express.json());
 
     // Sync the model (creates table if needed)
-    Beer.sync();
+    Service.sync();
 
     // Routes
 
-    app.get('/api/beers', async (req, res) => {
-    const beers = await Beer.findAll();
-    res.json(beers);
-    });
+    // app.get('/api/beers', async (req, res) => {
+    // const beers = await Beer.findAll();
+    // res.json(beers);
+    // });
 
 
 
 
-    app.post('/api/beers', async (req, res) => {
-    try {
-        const {
-        name,
-        description,
-        abv: rawAbv,
-        image_url,
-        ph,
-        first_brewed
-        } = req.body;
+//     app.post('/api/beers', async (req, res) => {
+//     try {
+//         const {
+//         name,
+//         description,
+//         abv: rawAbv,
+//         image_url,
+//         ph,
+//         first_brewed
+//         } = req.body;
 
-        // Normalize and parse ABV
-        let abv = rawAbv;
-        if (typeof rawAbv === 'string') {
-        abv = rawAbv.replace(/[^\d.]/g, ''); // remove %, =, etc.
-        }
-        abv = parseFloat(abv);
+//         // Normalize and parse ABV
+//         let abv = rawAbv;
+//         if (typeof rawAbv === 'string') {
+//         abv = rawAbv.replace(/[^\d.]/g, ''); // remove %, =, etc.
+//         }
+//         abv = parseFloat(abv);
 
-        if (isNaN(abv)) {
-        console.error('Invalid ABV:', rawAbv);
-        return res.status(400).json({ error: 'Invalid ABV format' });
-        }
+//         if (isNaN(abv)) {
+//         console.error('Invalid ABV:', rawAbv);
+//         return res.status(400).json({ error: 'Invalid ABV format' });
+//         }
 
-        const newBeer = await Beer.create({
-        name,
-        description,
-        abv,
-        image_url,
-        ph,
-        first_brewed
-        });
+//         const newBeer = await Beer.create({
+//         name,
+//         description,
+//         abv,
+//         image_url,
+//         ph,
+//         first_brewed
+//         });
 
-        res.status(201).json(newBeer);
-    } catch (err) {
-        console.error('❌ Error saving beer:', err);
-        res.status(500).send('Internal Server Error');
-    }
-});
+//         res.status(201).json(newBeer);
+//     } catch (err) {
+//         console.error('❌ Error saving beer:', err);
+//         res.status(500).send('Internal Server Error');
+//     }
+// });
 
 
 
