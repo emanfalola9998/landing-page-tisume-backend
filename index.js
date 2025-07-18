@@ -12,7 +12,7 @@
     // ? 'http://localhost:5173'  // Vite default
     // : 'https://deploy-preview-18--beerfrontend.netlify.app';  // or your Netlify domain
 
-    const FRONTEND_ORIGIN = "https://deploy-preview-18--beerfrontend.netlify.app"
+    const FRONTEND_ORIGIN = "https://landingpageaiexample.netlify.app/"
 
     app.use(cors({
     origin: FRONTEND_ORIGIN,
