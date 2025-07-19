@@ -75,7 +75,6 @@ app.post('/api/proxy/service-submit', async (req, res) => {
                 where: {
                     subCategory: businessSubcategory,
                     parentCategory: category,
-                    businessId: businessId || null
                 }
                 });
 
