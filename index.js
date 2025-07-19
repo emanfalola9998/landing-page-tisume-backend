@@ -51,60 +51,71 @@ app.post('/api/proxy/service-submit', async (req, res) => {
 });
 
 
-    app.post('/api/service-submit', async (req, res) => {
-        try{
-            const {
-                name,
-                icon,
-                category,
-                description,
-                aftercareDescription,
-                serviceFor,
-                duration,
-                priceType,
-                price,
-                order,
-                pricingName,
-                createdAt,
-                businessSubcategory,
-                businessId
-            } = req.body
+app.post('/api/service-submit', async (req, res) => {
+  try {
+    const services = Array.isArray(req.body) ? req.body : [req.body];
 
-                // Lookup subcategory ID using both subCategory and parentCategory (optional but recommended)
-                const subcat = await BusinessSubCategory.findOne({
-                where: {
-                    subCategory: businessSubcategory,
-                    parentCategory: category,
-                }
-                });
+    const createdServices = [];
 
-                if (!subcat) {
-                    return res.status(400).json({ error: `Subcategory "${businessSubcategory}" not found under category "${category}"` });
-                }
+    for (const service of services) {
+      const {
+        name,
+        icon,
+        category,
+        description,
+        aftercareDescription,
+        serviceFor,
+        duration,
+        priceType,
+        price,
+        order,
+        pricingName,
+        createdAt,
+        businessSubcategory,
+        businessId
+      } = service;
 
-            const newService = await Service.create({
-                name,
-                icon,
-                category,
-                description,
-                aftercareDescription,
-                serviceFor,
-                duration,
-                priceType,
-                price,
-                order,
-                pricingName,
-                createdAt,
-                businessSubcategory: subcat.id,
-                businessId
-            });
-            res.status(201).json(newService);
+      const subcat = await BusinessSubCategory.findOne({
+        where: {
+          subCategory: businessSubcategory,
+          parentCategory: category,
+          // You can include businessId here if still needed
         }
-        catch (err) {
-            console.error('❌ Error saving Tisume Service:', err);
-            res.status(500).send('Internal Server Error');
-        }
-    })
+      });
+
+      if (!subcat) {
+        return res.status(400).json({
+          error: `Subcategory "${businessSubcategory}" not found under category "${category}"`,
+        });
+      }
+
+      const newService = await Service.create({
+        name,
+        icon,
+        category,
+        description,
+        aftercareDescription,
+        serviceFor,
+        duration,
+        priceType,
+        price,
+        order,
+        pricingName,
+        createdAt,
+        businessSubcategory: subcat.id,
+        businessId
+      });
+
+      createdServices.push(newService);
+    }
+
+    res.status(201).json(createdServices);
+  } catch (err) {
+    console.error('❌ Error saving Tisume Services:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
     
     
