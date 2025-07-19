@@ -222,20 +222,29 @@ app.post('/webhook/service-upload', async (req, res) => {
       return res.status(400).json({ error: 'No valid service entries found.' });
     }
 
-    console.log('🚀 Submitting to backend with:', JSON.stringify(validServices, null, 2));
+    try {
+  console.log('🚀 Submitting services:', JSON.stringify(validServices, null, 2));
 
-    const submitRes = await axios.post(
-      'https://landing-page-tisume-backend-production.up.railway.app/api/service-submit',
-      validServices
-    );
-    console.log('🛠 Backend response:', submitRes.status, submitRes.data);
+  const submitRes = await axios.post(
+    'https://landing-page-tisume-backend-production.up.railway.app/api/service-submit',
+    validServices
+  );
 
-    console.log('✅ Submitted services:', validServices);
-    return res.status(200).json({
-      success: true,
-      message: 'Services submitted to backend',
-      backendResponse: submitRes.data
-    });
+  console.log('🛠 Backend response:', submitRes.status, JSON.stringify(submitRes.data, null, 2));
+
+  return res.status(200).json({
+    success: true,
+    message: 'Services submitted to backend',
+    backendResponse: submitRes.data
+  });
+
+} catch (error) {
+  console.error('❌ Error submitting to service-submit:', error.response?.data || error.message || error);
+  return res.status(500).json({
+    error: 'Failed to submit services to backend',
+    details: error.response?.data || error.message
+  });
+}
 
   } catch (err) {
     console.error('❌ Internal Error:', err.message || err);
