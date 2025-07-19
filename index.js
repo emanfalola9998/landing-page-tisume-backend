@@ -74,6 +74,8 @@ app.post('/api/service-submit', async (req, res) => {
 
     const createdServices = [];
 
+    console.log("createdServices: ", createdServices)
+
     for (const service of services) {
       const {
         name,
@@ -158,56 +160,78 @@ app.post('/api/service-submit', async (req, res) => {
 
 // implementation without n8n
 
+function validateService(service) {
+  return (
+    typeof service.name === 'string' &&
+    typeof service.description === 'string' &&
+    service.name.trim() !== '' &&
+    service.description.trim() !== '' &&
+    typeof service.price !== 'undefined' &&
+    typeof service.businessSubcategory === 'string' &&
+    typeof service.category === 'string'
+  );
+}
+
+
 app.post('/webhook/service-upload', async (req, res) => {
-    const textContent = req.body.textContent;
+  const textContent = req.body.textContent;
 
-    if (!textContent) {
-        return res.status(400).json({ error: 'Missing textContent field' });
-    }
+  if (!textContent) {
+    return res.status(400).json({ error: 'Missing textContent field' });
+  }
 
-    try {
-        // 2. Prompt OpenAI to structure the text
-        const prompt = buildPrompt(textContent);
+  try {
+    const prompt = buildPrompt(textContent);
 
-        const completion = await openai.chat.completions.create({
-        model: 'gpt-4o',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.3,
-        });
-
-        let rawJson = completion.choices[0].message.content.trim();
-
-        // 3. Clean the result (strip ```json blocks if they exist)
-        rawJson = rawJson.replace(/```json|```/g, '').trim();
-
-        let parsedServices = JSON.parse(rawJson);
-
-        // 4. Validate and fallback
-        const validServices = parsedServices
-        .filter(s => s.name?.trim() && s.description?.trim() && s.price !== undefined)
-        .map(applyFallbacks);
-
-        if (validServices.length === 0) {
-        return res.status(400).json({ error: 'No valid service entries found.' });
-        }
-
-        // 5. Submit to your backend
-        const submitRes = await axios.post(
-        'https://landing-page-tisume-backend-production.up.railway.app/api/service-submit',
-        validServices
-        );
-
-        return res.status(200).json({
-        success: true,
-        message: 'Services submitted to backend',
-        backendResponse: submitRes.data
-        });
-
-    } catch (err) {
-        console.error('❌ Error:', err.message || err);
-        return res.status(500).json({ error: 'Internal Server Error' });
-    }
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0, // more deterministic
     });
+
+    let rawJson = completion.choices[0].message.content.trim();
+    console.log('🧪 Raw OpenAI Output:', rawJson);
+
+    // Clean JSON from code block
+    rawJson = rawJson.replace(/```json|```/g, '').trim();
+
+    let parsedServices;
+    try {
+      parsedServices = JSON.parse(rawJson);
+    } catch (err) {
+      console.error('❌ JSON parsing failed:', err.message);
+      return res.status(400).json({ error: 'Invalid JSON from OpenAI' });
+    }
+
+    // Validate essential fields
+    const validServices = parsedServices
+      .filter(validateService)
+      .map(applyFallbacks);
+
+    if (validServices.length === 0) {
+      console.warn('⚠️ No valid services found after validation.');
+      return res.status(400).json({ error: 'No valid service entries found.' });
+    }
+
+    console.log('✅ Parsed & Validated Services:', JSON.stringify(validServices, null, 2));
+
+    const submitRes = await axios.post(
+      'https://landing-page-tisume-backend-production.up.railway.app/api/service-submit',
+      validServices
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'Services submitted to backend',
+      backendResponse: submitRes.data
+    });
+
+  } catch (err) {
+    console.error('❌ Error in /webhook/service-upload:', err.message || err);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 
     /**
  * Build the OpenAI system prompt
