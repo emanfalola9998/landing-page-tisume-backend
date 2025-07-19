@@ -9,7 +9,7 @@ const Addon = sequelize.define('Addon', {
   },
   name: { type: DataTypes.STRING, allowNull: false },
   price: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
-  duration: { type: DataTypes.INTEGER, allowNull: false }, // duration in minutes
+  duration: { type: DataTypes.INTEGER, allowNull: true }, // duration in minutes
 }, {
   timestamps: false,
 });

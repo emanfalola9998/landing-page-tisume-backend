@@ -62,6 +62,15 @@ app.post('/api/service-submit', async (req, res) => {
 
     const createdServices = [];
 
+      for (const rawService of services) {
+      // Replace null or undefined with 'N/A'
+      const service = Object.fromEntries(
+        Object.entries(rawService).map(([key, value]) => [
+          key,
+          value === null || value === undefined ? 'N/A' : value
+        ])
+      );
+
     for (const service of services) {
       const {
         name,
@@ -80,6 +89,8 @@ app.post('/api/service-submit', async (req, res) => {
         businessId,
         addons // <-- get addons here
       } = service;
+
+      const NoNullValues = if(service.name == null ? "N/A")
 
       // Find subcategory
       const subcat = await BusinessSubCategory.findOne({
