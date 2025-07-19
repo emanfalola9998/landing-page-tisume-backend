@@ -3,7 +3,7 @@
     const cors = require('cors');
     const Service = require('./models/services');
     const sequelize = require('./db');
-    const BusinessSubCategory = require('./models/BusinessSubCategory');
+    const BusinessSubCategory = require('./models/businessSubcategory');
 
     const app = express();
 

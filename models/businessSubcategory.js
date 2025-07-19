@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../db');
 
-const BusinessSubCategory = sequelize.define('business_subCategories', {
+const BusinessSubcategory = sequelize.define('business_subCategories', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     subCategory: { type: DataTypes.STRING, allowNull: false },
     parentCategory: { type: DataTypes.STRING, allowNull: false },
@@ -11,4 +11,4 @@ const BusinessSubCategory = sequelize.define('business_subCategories', {
     timestamps: false
     });
 
-module.exports = BusinessSubCategory;
+module.exports = BusinessSubcategory;
