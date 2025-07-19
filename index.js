@@ -19,8 +19,8 @@
     Service.sync();
 
 const multer = require('multer');
-const FormData = require('form-data');
-const upload = multer(); // handles multipart/form-data
+// const FormData = require('form-data');
+// const upload = multer(); // handles multipart/form-data
 
 app.use(express.json()); // Make sure this is BEFORE the route handlers
 
@@ -93,7 +93,7 @@ app.post('/api/proxy/service-submit', async (req, res) => {
             res.status(201).json(newService);
         }
         catch (err) {
-            console.error('❌ Error saving beer:', err);
+            console.error('❌ Error saving Tisume Service:', err);
             res.status(500).send('Internal Server Error');
         }
     })
