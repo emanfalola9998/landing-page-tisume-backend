@@ -2,6 +2,8 @@
     const express = require('express');
     const cors = require('cors');
     const Service = require('./models/services');
+    const Addon = require('./models/addon');
+    const AppointmentAddon = require('./models/appointmentAddon');
     const sequelize = require('./db');
     const BusinessSubCategory = require('./models/businessSubcategory');
 
@@ -19,12 +21,21 @@
     // Sync the model (creates table if needed)
     Service.sync();
     BusinessSubCategory.sync()
-
-const multer = require('multer');
-// const FormData = require('form-data');
-// const upload = multer(); // handles multipart/form-data
+    Addon.sync()
 
 app.use(express.json()); // Make sure this is BEFORE the route handlers
+
+Service.belongsToMany(Addon, {
+  through: AppointmentAddon,
+  foreignKey: 'appointmentId',
+  otherKey: 'addonId',
+});
+
+Addon.belongsToMany(Service, {
+  through: AppointmentAddon,
+  foreignKey: 'addonId',
+  otherKey: 'appointmentId',
+});
 
 app.post('/api/proxy/service-submit', async (req, res) => {
   try {
@@ -72,7 +83,8 @@ app.post('/api/service-submit', async (req, res) => {
         pricingName,
         createdAt,
         businessSubcategory,
-        businessId
+        businessId,
+        addons
       } = service;
 
       const subcat = await BusinessSubCategory.findOne({
@@ -116,8 +128,36 @@ app.post('/api/service-submit', async (req, res) => {
   }
 });
 
+// Insert addons and link to the service
+    if (addons && Array.isArray(addons)) {
+      for (const addonData of addons) {
+        // Check if addon exists (optional)
+        let addon = await Addon.findOne({ where: { name: addonData.name } });
+        
+        if (!addon) {
+          addon = await Addon.create({
+            name: addonData.name,
+            price: addonData.price,
+            duration: addonData.duration || null,
+            description: addonData.description || ''
+          });
+        }
 
-    
+        // Link addon with the service via join table
+        await AppointmentAddon.create({
+          serviceId: newService.id,
+          addonId: addon.id
+        });
+      }
+    }
+
+
+
+module.exports = {
+  Service,
+  Addon,
+  AppointmentAddon,
+};
     
 
     const PORT = process.env.PORT || 3001;  // fallback to 3001 if PORT is not set locally
