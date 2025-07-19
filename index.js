@@ -22,6 +22,7 @@
     Service.sync();
     BusinessSubCategory.sync()
     Addon.sync()
+    AppointmentAddon.sync()
 
 app.use(express.json()); // Make sure this is BEFORE the route handlers
 
