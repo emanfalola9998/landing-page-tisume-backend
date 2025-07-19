@@ -134,7 +134,7 @@ app.post('/api/service-submit', async (req, res) => {
           }
 
           await AppointmentAddon.create({
-            serviceId: newService.id,
+            appointmentId: newService.id,
             addonId: addon.id
           });
         }
