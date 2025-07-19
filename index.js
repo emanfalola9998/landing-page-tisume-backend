@@ -62,15 +62,7 @@ app.post('/api/service-submit', async (req, res) => {
 
     const createdServices = [];
 
-    for (const rawService of services) {
-      // Sanitize service: Replace null or undefined with 'N/A'
-      const service = Object.fromEntries(
-        Object.entries(rawService).map(([key, value]) => [
-          key,
-          value === null || value === undefined ? 'N/A' : value
-        ])
-      );
-
+    for (const service of services) {
       const {
         name,
         icon,
@@ -86,20 +78,20 @@ app.post('/api/service-submit', async (req, res) => {
         createdAt,
         businessSubcategory,
         businessId,
-        addons
+        addons // <-- get addons here
       } = service;
 
       // Find subcategory
       const subcat = await BusinessSubCategory.findOne({
         where: {
           subCategory: businessSubcategory,
-          parentCategory: category
+          parentCategory: category,
         }
       });
 
       if (!subcat) {
         return res.status(400).json({
-          error: `Subcategory "${businessSubcategory}" not found under category "${category}"`
+          error: `Subcategory "${businessSubcategory}" not found under category "${category}"`,
         });
       }
 
@@ -121,25 +113,17 @@ app.post('/api/service-submit', async (req, res) => {
         businessId
       });
 
-      // Insert addons & link them
+      // Insert addons & link them - THIS MUST BE INSIDE THE FUNCTION
       if (addons && Array.isArray(addons)) {
-        for (const rawAddon of addons) {
-          // Sanitize addon
-          const addonData = Object.fromEntries(
-            Object.entries(rawAddon).map(([key, value]) => [
-              key,
-              value === null || value === undefined ? 'N/A' : value
-            ])
-          );
-
+        for (const addonData of addons) {
           let addon = await Addon.findOne({ where: { name: addonData.name } });
 
           if (!addon) {
             addon = await Addon.create({
               name: addonData.name,
               price: addonData.price,
-              duration: addonData.duration,
-              description: addonData.description
+              duration: addonData.duration || null,
+              description: addonData.description || ''
             });
           }
 
@@ -159,7 +143,6 @@ app.post('/api/service-submit', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
 
 
 module.exports = {
