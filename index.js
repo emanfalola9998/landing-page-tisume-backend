@@ -52,7 +52,6 @@ app.post('/api/proxy/service-submit', async (req, res) => {
     app.post('/api/service-submit', async (req, res) => {
         try{
             const {
-                id,
                 name,
                 icon,
                 category,
@@ -74,7 +73,6 @@ app.post('/api/proxy/service-submit', async (req, res) => {
             }
 
             const newService = await Service.create({
-                id,
                 name,
                 icon,
                 category,
