@@ -90,8 +90,6 @@ app.post('/api/service-submit', async (req, res) => {
         addons // <-- get addons here
       } = service;
 
-      const NoNullValues = if(service.name == null ? "N/A")
-
       // Find subcategory
       const subcat = await BusinessSubCategory.findOne({
         where: {
