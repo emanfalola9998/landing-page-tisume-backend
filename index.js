@@ -68,9 +68,6 @@ app.post('/api/proxy/service-submit', async (req, res) => {
                 businessId
             } = req.body
 
-            if (!id) {
-                id = Math.random()
-            }
 
             const newService = await Service.create({
                 name,
