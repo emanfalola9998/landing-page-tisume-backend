@@ -107,44 +107,7 @@ app.post('/api/proxy/service-submit', async (req, res) => {
         }
     })
 
-    app.post('/api/seed-subcategories', async (req, res) => {
-  try {
-    const seedData = [
-    { subCategory: 'Wigs', parentCategory: 'Hair & Styling', order: 1 },
-    { subCategory: 'Braids', parentCategory: 'Hair & Styling', order: 2 },
-    { subCategory: 'Locs', parentCategory: 'Hair & Styling', order: 3 },
-    { subCategory: 'Extensions', parentCategory: 'Hair & Styling', order: 4 },
-    { subCategory: 'Natural Hair', parentCategory: 'Hair & Styling', order: 5 },
-    { subCategory: 'Ponytail', parentCategory: 'Hair & Styling', order: 6 },
-    { subCategory: 'Sewins', parentCategory: 'Hair & Styling', order: 7 },
-    { subCategory: 'Tape INs', parentCategory: 'Hair & Styling', order: 8 },
-    { subCategory: 'Tape In', parentCategory: 'Hair & Styling', order: 9 },
-    { subCategory: 'Wigs - Contactless bookings', parentCategory: 'Hair & Styling', order: 10 },
-
-    { subCategory: 'Eyelash Extensions', parentCategory: 'Lash (Eyebrow & Eyelash Services', order: 1 },
-    { subCategory: 'Eyelash Lifts', parentCategory: 'Lash (Eyebrow & Eyelash Services', order: 2 },
-    { subCategory: 'Eyelash Tinting', parentCategory: 'Lash (Eyebrow & Eyelash Services', order: 3 },
-    { subCategory: 'Eyelash Waxing', parentCategory: 'Lash (Eyebrow & Eyelash Services', order: 4 },
-    { subCategory: 'Eyelash Threading', parentCategory: 'Lash (Eyebrow & Eyelash Services', order: 5 },
-    { subCategory: 'Microblading', parentCategory: 'Lash (Eyebrow & Eyelash Services', order: 6 },
-    { subCategory: 'Brow Lamination', parentCategory: 'Lash (Eyebrow & Eyelash Services', order: 7 },
-
-    { subCategory: 'Facials', parentCategory: 'Aestheticians (Skincare & Beauty Treatments)', order: 1 },
-    { subCategory: 'Microdermabrasion', parentCategory: 'Aestheticians (Skincare & Beauty Treatments)', order: 2 },
-    { subCategory: 'Chemical Peels', parentCategory: 'Aestheticians (Skincare & Beauty Treatments)', order: 3 },
-    { subCategory: 'Waxing (Body, Face, Bikini)', parentCategory: 'Aestheticians (Skincare & Beauty Treatments)', order: 4 },
-    { subCategory: 'Dermaplaning', parentCategory: 'Aestheticians (Skincare & Beauty Treatments)', order: 5 },
-    { subCategory: 'Body Treatments', parentCategory: 'Aestheticians (Skincare & Beauty Treatments)', order: 6 },
-    { subCategory: 'Skin Rejuvenation', parentCategory: 'Aestheticians (Skincare & Beauty Treatments)', order: 7 },
-    ];
-
-    await BusinessSubCategory.bulkCreate(seedData, { ignoreDuplicates: true });
-    res.status(200).json({ message: '✅ Subcategories seeded successfully' });
-  } catch (err) {
-    console.error('❌ Error seeding subcategories:', err);
-    res.status(500).json({ error: 'Failed to seed' });
-  }
-});
+    
     
 
     const PORT = process.env.PORT || 3001;  // fallback to 3001 if PORT is not set locally
