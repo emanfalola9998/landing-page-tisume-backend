@@ -1,3 +1,6 @@
+const { DataTypes } = require("sequelize");
+const sequelize = require("../db");
+
 const AppointmentAddon = sequelize.define('AppointmentAddon', {
   id: {
     type: DataTypes.INTEGER,

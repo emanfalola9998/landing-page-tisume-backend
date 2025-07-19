@@ -1,3 +1,6 @@
+const { DataTypes } = require("sequelize");
+const sequelize = require("../db");
+
 const Addon = sequelize.define('Addon', {
   id: {
     type: DataTypes.INTEGER,
