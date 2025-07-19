@@ -11,5 +11,5 @@ const Addon = sequelize.define('Addon', {
   timestamps: false,
 });
 
-export default Addon
+module.exports = Addon;
 

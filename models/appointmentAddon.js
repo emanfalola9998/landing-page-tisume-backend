@@ -11,4 +11,4 @@ const AppointmentAddon = sequelize.define('AppointmentAddon', {
   tableName: 'appointment_addons',
 });
 
-export default AppointmentAddon
+module.exports = AppointmentAddon
