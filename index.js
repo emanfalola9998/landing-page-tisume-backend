@@ -186,40 +186,48 @@ app.post('/webhook/service-upload', async (req, res) => {
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [{ role: 'user', content: prompt }],
-      temperature: 0, // more deterministic
+      temperature: 0.3,
     });
 
-    let rawJson = completion.choices[0].message.content.trim();
-    console.log('🧪 Raw OpenAI Output:', rawJson);
+    let rawOutput = completion.choices[0].message.content.trim();
+    console.log('🧪 Raw OpenAI Output:', rawOutput);
 
-    // Clean JSON from code block
-    rawJson = rawJson.replace(/```json|```/g, '').trim();
+    // Clean code blocks and isolate JSON
+    rawOutput = rawOutput.replace(/```(?:json)?/g, '').replace(/```/g, '').trim();
+
+    // Extract the first JSON array
+    const match = rawOutput.match(/\[\s*{[\s\S]*}\s*]/);
+    if (!match) {
+      console.error('❌ No valid JSON array found');
+      return res.status(400).json({ error: 'Invalid JSON format from OpenAI.' });
+    }
+
+    const jsonToParse = match[0];
 
     let parsedServices;
     try {
-      parsedServices = JSON.parse(rawJson);
-    } catch (err) {
-      console.error('❌ JSON parsing failed:', err.message);
-      return res.status(400).json({ error: 'Invalid JSON from OpenAI' });
+      parsedServices = JSON.parse(jsonToParse);
+    } catch (parseErr) {
+      console.error('❌ JSON parsing failed:', parseErr.message);
+      console.error('🪵 Raw JSON string:', jsonToParse);
+      return res.status(400).json({ error: 'Malformed JSON from OpenAI.' });
     }
 
-    // Validate essential fields
+    // Fallbacks and validation
     const validServices = parsedServices
-      .filter(validateService)
+      .filter(s => s.name?.trim() && s.description?.trim() && s.price !== undefined)
       .map(applyFallbacks);
 
     if (validServices.length === 0) {
-      console.warn('⚠️ No valid services found after validation.');
       return res.status(400).json({ error: 'No valid service entries found.' });
     }
-
-    console.log('✅ Parsed & Validated Services:', JSON.stringify(validServices, null, 2));
 
     const submitRes = await axios.post(
       'https://landing-page-tisume-backend-production.up.railway.app/api/service-submit',
       validServices
     );
 
+    console.log('✅ Submitted services:', validServices);
     return res.status(200).json({
       success: true,
       message: 'Services submitted to backend',
@@ -227,10 +235,11 @@ app.post('/webhook/service-upload', async (req, res) => {
     });
 
   } catch (err) {
-    console.error('❌ Error in /webhook/service-upload:', err.message || err);
+    console.error('❌ Internal Error:', err.message || err);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 
     /**
@@ -353,7 +362,9 @@ Add this array as a field in the service JSON object like:
 
 
 
-Return only the JSON. Do not explain or add any text.
+Return ONLY a JSON array. 
+Do not use markdown, explanation, or wrap it in triple backticks. 
+If you are unsure about a field, use empty string, 0, or null.
 
     servicePage:
     ${text}
