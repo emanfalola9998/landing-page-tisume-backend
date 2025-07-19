@@ -6,14 +6,20 @@
     const AppointmentAddon = require('./models/appointmentAddon');
     const sequelize = require('./db');
     const BusinessSubCategory = require('./models/businessSubcategory');
-    const { OpenAI } = require('openai');
+    const { OpenAI } = require('openai'); // implementation without n8n
+
     const axios = require('axios');
     
+
+    const app = express();
+
+    // implementation without n8n
+
     app.use(express.json({ limit: '2mb' })); // for JSON
     app.use(express.urlencoded({ extended: true })); // for form submissions
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// end --- implementation without n8n
 
-    const app = express();
 
     const FRONTEND_ORIGIN = "https://landingpageaiexample.netlify.app"
 
@@ -149,6 +155,8 @@ app.post('/api/service-submit', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+// implementation without n8n
 
 app.post('/webhook/service-upload', async (req, res) => {
     const textContent = req.body.textContent;
