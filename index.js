@@ -3,6 +3,7 @@
     const cors = require('cors');
     const Service = require('./models/services');
     const sequelize = require('./db');
+    const BusinessSubCategory = require('./models/businessSubCategory');
 
     const app = express();
 
@@ -68,6 +69,18 @@ app.post('/api/proxy/service-submit', async (req, res) => {
                 businessId
             } = req.body
 
+                // Lookup subcategory ID using both subCategory and parentCategory (optional but recommended)
+                const subcat = await BusinessSubCategory.findOne({
+                where: {
+                    subCategory: businessSubcategory,
+                    parentCategory: category,
+                    businessId: businessId || null
+                }
+                });
+
+                if (!subcat) {
+                    return res.status(400).json({ error: `Subcategory "${businessSubcategory}" not found under category "${category}"` });
+                }
 
             const newService = await Service.create({
                 name,
@@ -82,7 +95,7 @@ app.post('/api/proxy/service-submit', async (req, res) => {
                 order,
                 pricingName,
                 createdAt,
-                businessSubcategory,
+                businessSubcategory: subcat.id,
                 businessId
             });
             res.status(201).json(newService);
