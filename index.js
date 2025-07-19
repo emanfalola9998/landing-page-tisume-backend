@@ -22,32 +22,31 @@ const multer = require('multer');
 const FormData = require('form-data');
 const upload = multer(); // handles multipart/form-data
 
-// 🔥 Put this BEFORE express.json middleware
-app.post('/api/proxy/service-submit', upload.single('data'), async (req, res) => {
-  try {
-    const form = new FormData();
+app.use(express.json()); // Make sure this is BEFORE the route handlers
 
-    form.append('data', req.file.buffer, {
-      filename: req.file.originalname,
-      contentType: req.file.mimetype,
-    });
+app.post('/api/proxy/service-submit', async (req, res) => {
+  try {
+    const { textContent } = req.body;
+
+    if (!textContent) {
+      return res.status(400).json({ error: 'No textContent provided' });
+    }
 
     const response = await fetch('https://ronaldo9860.app.n8n.cloud/webhook-test/service-submit', {
       method: 'POST',
-      headers: form.getHeaders(),
-      body: form,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ textContent }),
     });
 
-    const result = await response.text();
-    res.status(response.status).send(result);
+    const result = await response.json();
+    res.status(response.status).json(result);
   } catch (err) {
     console.error('❌ Proxy error:', err);
     res.status(500).json({ error: 'Proxy request failed' });
   }
 });
-
-// 🧨 Move this below the upload route
-app.use(express.json());
 
 
     app.post('/api/service-submit', async (req, res) => {
