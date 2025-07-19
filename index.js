@@ -222,10 +222,13 @@ app.post('/webhook/service-upload', async (req, res) => {
       return res.status(400).json({ error: 'No valid service entries found.' });
     }
 
+    console.log('🚀 Submitting to backend with:', JSON.stringify(validServices, null, 2));
+
     const submitRes = await axios.post(
       'https://landing-page-tisume-backend-production.up.railway.app/api/service-submit',
       validServices
     );
+    console.log('🛠 Backend response:', submitRes.status, submitRes.data);
 
     console.log('✅ Submitted services:', validServices);
     return res.status(200).json({
@@ -375,7 +378,18 @@ If you are unsure about a field, use empty string, 0, or null.
  * Fallbacks for missing fields
  */
 function applyFallbacks(service) {
-return {
+  const cleanAddons = Array.isArray(service.addons)
+    ? service.addons
+        .filter(a => a && a.name && typeof a.name === 'string')
+        .map(a => ({
+          name: a.name || 'Untitled Addon',
+          price: typeof a.price === 'number' ? a.price : 0,
+          duration: typeof a.duration === 'number' ? a.duration : 0,
+          description: a.description || ''
+        }))
+    : [];
+
+  return {
     ...service,
     category: service.category || 'N/A',
     aftercareDescription: service.aftercareDescription || 'N/A',
@@ -383,14 +397,10 @@ return {
     duration: typeof service.duration === 'number' ? service.duration : 0,
     priceType: service.priceType || 'N/A',
     pricingName: service.pricingName || 'N/A',
-    addons: Array.isArray(service.addons) ? service.addons.map(a => ({
-        name: a.name || 'Untitled Addon',
-        price: a.price || 0,
-        duration: typeof a.duration === 'number' ? a.duration : 0,
-        description: a.description || ''
-    })) : []
-    };
+    addons: cleanAddons
+  };
 }
+
 
 
 module.exports = {
