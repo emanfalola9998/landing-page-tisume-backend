@@ -84,14 +84,14 @@ app.post('/api/service-submit', async (req, res) => {
         createdAt,
         businessSubcategory,
         businessId,
-        addons
+        addons // <-- get addons here
       } = service;
 
+      // Find subcategory
       const subcat = await BusinessSubCategory.findOne({
         where: {
           subCategory: businessSubcategory,
           parentCategory: category,
-          // You can include businessId here if still needed
         }
       });
 
@@ -101,6 +101,7 @@ app.post('/api/service-submit', async (req, res) => {
         });
       }
 
+      // Create the service
       const newService = await Service.create({
         name,
         icon,
@@ -118,39 +119,36 @@ app.post('/api/service-submit', async (req, res) => {
         businessId
       });
 
+      // Insert addons & link them - THIS MUST BE INSIDE THE FUNCTION
+      if (addons && Array.isArray(addons)) {
+        for (const addonData of addons) {
+          let addon = await Addon.findOne({ where: { name: addonData.name } });
+
+          if (!addon) {
+            addon = await Addon.create({
+              name: addonData.name,
+              price: addonData.price,
+              duration: addonData.duration || null,
+              description: addonData.description || ''
+            });
+          }
+
+          await AppointmentAddon.create({
+            serviceId: newService.id,
+            addonId: addon.id
+          });
+        }
+      }
+
       createdServices.push(newService);
     }
 
     res.status(201).json(createdServices);
   } catch (err) {
-    console.error('❌ Error saving Tisume Services:', err);
+    console.error('❌ Error saving Services:', err);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
-// Insert addons and link to the service
-    if (addons && Array.isArray(addons)) {
-      for (const addonData of addons) {
-        // Check if addon exists (optional)
-        let addon = await Addon.findOne({ where: { name: addonData.name } });
-        
-        if (!addon) {
-          addon = await Addon.create({
-            name: addonData.name,
-            price: addonData.price,
-            duration: addonData.duration || null,
-            description: addonData.description || ''
-          });
-        }
-
-        // Link addon with the service via join table
-        await AppointmentAddon.create({
-          serviceId: newService.id,
-          addonId: addon.id
-        });
-      }
-    }
-
 
 
 module.exports = {
