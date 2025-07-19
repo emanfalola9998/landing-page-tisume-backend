@@ -17,6 +17,10 @@
     credentials: true,
     }));
 
+    // After defining Service and Addon...
+    Service.belongsToMany(Addon, { through: AppointmentAddon, foreignKey: 'appointmentId', otherKey: 'addonId' });
+    Addon.belongsToMany(Service, { through: AppointmentAddon, foreignKey: 'addonId', otherKey: 'appointmentId' });
+
 
     // Sync the model (creates table if needed)
     Service.sync();
@@ -26,17 +30,6 @@
 
 app.use(express.json()); // Make sure this is BEFORE the route handlers
 
-Service.belongsToMany(Addon, {
-  through: AppointmentAddon,
-  foreignKey: 'appointmentId',
-  otherKey: 'addonId',
-});
-
-Addon.belongsToMany(Service, {
-  through: AppointmentAddon,
-  foreignKey: 'addonId',
-  otherKey: 'appointmentId',
-});
 
 app.post('/api/proxy/service-submit', async (req, res) => {
   try {
