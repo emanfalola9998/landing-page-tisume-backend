@@ -1,4 +1,7 @@
     require('dotenv').config();
+    const { applyFallbacks } = require('./utils/fallbackUtils');
+    const { parseAndValidateServices, addSessionIdToItems } = require('./utils/serviceUtils');
+    const { buildPrompt } = require('./utils/openaiUtils');
     const express = require('express');
     const cors = require('cors');
     const Service = require('./models/services');
@@ -39,21 +42,20 @@
     Addon.sync()
     AppointmentAddon.sync()
 
-app.use(express.json()); // Make sure this is BEFORE the route handlers
 
-app.options('*', (req, res) => {
-  if (
-    req.headers.origin === 'https://landingpageaiexample.netlify.app' &&
-    req.headers['access-control-request-method']
-  ) {
-    res.setHeader('Access-Control-Allow-Origin', 'https://landingpageaiexample.netlify.app');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    return res.sendStatus(204);
-  }
+// app.options('*', (req, res) => {
+//   if (
+//     req.headers.origin === 'https://landingpageaiexample.netlify.app' &&
+//     req.headers['access-control-request-method']
+//   ) {
+//     res.setHeader('Access-Control-Allow-Origin', 'https://landingpageaiexample.netlify.app');
+//     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+//     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+//     return res.sendStatus(204);
+//   }
 
-  res.sendStatus(404);
-});
+//   res.sendStatus(404);
+// });
 
 
 app.post('/api/proxy/service-submit', async (req, res) => {
@@ -173,55 +175,8 @@ app.post('/api/service-submit', async (req, res) => {
 
 // implementation without n8n
 
-function validateService(service) {
-  return (
-    typeof service.name === 'string' &&
-    typeof service.description === 'string' &&
-    service.name.trim() !== '' &&
-    service.description.trim() !== '' &&
-    typeof service.price !== 'undefined' &&
-    typeof service.businessSubcategory === 'string' &&
-    typeof service.category === 'string'
-  );
-}
-
-function parseAndValidateServices(rawOutput) {
-  // 1. Strip markdown backticks
-  const cleaned = rawOutput.replace(/```json|```/g, '').trim();
-
-  // 2. Try to parse JSON
-  let services;
-  try {
-    services = JSON.parse(cleaned);
-  } catch (err) {
-    throw new Error('❌ Failed to parse JSON from output field: ' + err.message);
-  }
-
-  // 3. Filter valid services
-  const validServices = services.filter(service =>
-    service.name?.trim() &&
-    service.description?.trim() &&
-    service.price?.toString().trim()
-  );
-
-  // 4. Error if none valid
-  if (validServices.length === 0) {
-    throw new Error('❌ No valid service entries found after validation.');
-  }
-
-  // 5. Return formatted items (optionally adapt shape for DB)
-  return validServices;
-}
 
 
-function addSessionIdToItems(items) {
-  const sessionId = Date.now().toString();
-
-  return items.map(item => ({
-    ...item,
-    sessionId
-  }));
-}
 
 app.post('/webhook/service-upload', async (req, res) => {
   const textContent = req.body.textContent;
@@ -315,160 +270,7 @@ app.post('/webhook/service-upload', async (req, res) => {
 
 
 
-    /**
- * Build the OpenAI system prompt
- */
-function buildPrompt(text) {
-    return `
-You are processing a plain text file that may contain multiple service entries.
 
-Each service begins with a line that contains the word **"Appointment"** (e.g. "Appointment:", "Appointment -", "Appointment for").
-
-Please split the input text using these lines as markers of a new service.
-
-Given the following services page content, extract all relevant service information and output as a valid JSON array.
-
-Each object in the array should include:
-
-- name
-- icon
-- category
-- description
-- aftercareDescription
-- serviceFor (like Adults, Teens, etc.)
-- duration (in minutes or hours)
-- priceType ("fixed" or "range")
-- price
-- order (just increment 1, 2, 3...)
-- pricingName (optional)
-- createdAt (use "2023-07-19" format)
-- businessSubcategory
-- businessId (randomly generated number)
-
-servicePage:
-{{ $json.body.textContent }}
-
-1. Hair & Styling
-Subcategories:
-
-Wigs
-
-Braids
-
-Locs
-
-Extensions
-
-Natural Hair
-
-Ponytail
-
-Sewins
-
-Tape INs
-
-Tape In
-
-Wigs Contactless booking
-
-2. Lash (Eyebrow & Eyelash Services)
-Subcategories:
-
-Eyelash Extensions
-
-Eyelash Lifts
-
-Eyelash Tints
-
-Eyebrow Waxing
-
-Eyebrow Threading
-
-Microblading
-
-Brow Lamination
-
-3. Aestheticians (Skincare & Beauty Treatments)
-Subcategories:
-
-Facials
-
-Microdermabrasion
-
-Chemical Peel
-
-Waxing (Body, Face, Bikini)
-
-Dermaplaning
-
-Body Treatments
-
-Skin Rejuvenation
-
-Assign the category field using only one of the three category names shown above.
-
-Assign the subcategory field using only one value from the valid subcategories under the selected category.
-
-Do not make up new categories or subcategories. Use the closest match.
-
-Add any extra context or nuances that don’t fit the subcategory into the description field.
-
-Subcategory must be relevant to the service name and description.
-
-
-If the service description or appointment text includes any optional services or features that increase price or duration, treat them as “Add Ons”.
-
-Extract them into an array called addons, with each add-on having:
-- name
-- price
-- duration (in minutes)
-
-Add this array as a field in the service JSON object like:
-
-"addons": [
-  {
-    "name": "Hot Oil Treatment",
-    "price": 10,
-    "duration": 15
-  }
-]
-
-
-
-Return ONLY a JSON array. 
-Do not use markdown, explanation, or wrap it in triple backticks. 
-If you are unsure about a field, use empty string, 0, or null.
-
-    servicePage:
-    ${text}
-    `.trim();
-}
-
-/**
- * Fallbacks for missing fields
- */
-function applyFallbacks(service) {
-   const fallbackFields = [
-    'category',
-    'aftercareDescription',
-    'serviceFor',
-    'duration',
-    'priceType',
-    'pricingName'
-  ];
-
-  return services.map(service => {
-    const updated = { ...service };
-
-    fallbackFields.forEach(field => {
-      if (!updated[field]) {
-        updated[field] = 'N/A';
-      }
-    });
-
-    return updated;
-  });
-}
 
 
 module.exports = {
