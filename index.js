@@ -189,7 +189,7 @@ app.post('/webhook/service-upload', async (req, res) => {
 
   try {
         
-    const prompt = buildPrompt(textWithSessionID);
+    const prompt = buildPrompt(textContent);
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
