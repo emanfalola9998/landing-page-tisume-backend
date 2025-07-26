@@ -201,21 +201,18 @@ app.post('/webhook/service-upload', async (req, res) => {
     
     console.log("typeof: ", typeof rawOutput)
 
-    if (typeof response === 'string') {
-    rawOutput = response;
-    } else if (response && typeof response === 'object') {
+    if (typeof rawOutput === 'string') {
+    rawOutput;
+    } else if (rawOutput && typeof rawOutput === 'object') {
     // If it's JSON or object, convert to string safely
-    rawOutput = JSON.stringify(response);
+    rawOutput = JSON.stringify(rawOutput);
     } else {
     // Fallback to empty string or throw error as needed
-    rawOutput = String(response || '');
+    rawOutput 
     }
     console.log('🧪 Raw OpenAI Output:', rawOutput);
 
-    // Clean code blocks and isolate JSON
-    if (typeof rawOutput !== 'string') {
-        throw new Error('Expected rawOutput to be a string but got ' + typeof rawOutput);
-    }
+
     rawOutput = rawOutput.replace(/```(?:json)?/g, '').replace(/```/g, '').trim();
 
     // Extract the first JSON array
