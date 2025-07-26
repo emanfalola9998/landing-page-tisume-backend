@@ -21,16 +21,20 @@ function parseAndValidateServices(rawOutput) {
   return validServices;
 }
 
-function addSessionIdToItems(items) {
+function addSessionId(item) {
   const sessionId = Date.now().toString();
-
-  return items.map(item => ({
-    ...item,
-    sessionId
-  }));
+  item.sessionId = sessionId;
+  return item;
 }
+
+// Usage inside n8n function node
+const input = items[0].json;
+const updated = addSessionId(input);
+
+return [{ json: updated }];
+
 
 module.exports = {
   parseAndValidateServices,
-  addSessionIdToItems,
+  addSessionId,
 };

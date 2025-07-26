@@ -1,6 +1,6 @@
     require('dotenv').config()
     const { applyFallbacks } = require('./Utils/fallbackUtils');
-    const { parseAndValidateServices, addSessionIdToItems } = require('./Utils/serviceUtils');
+    const { parseAndValidateServices, addSessionId } = require('./Utils/serviceUtils');
     const { buildPrompt } = require('./Utils/openaiUtils');
     const express = require('express');
     const cors = require('cors');
@@ -185,7 +185,7 @@ app.post('/webhook/service-upload', async (req, res) => {
     return res.status(400).json({ error: 'Missing textContent field' });
   }
 
-  const textWithSessionID = addSessionIdToItems(textContent)
+  const textWithSessionID = addSessionId(textContent)
 
   try {
         
