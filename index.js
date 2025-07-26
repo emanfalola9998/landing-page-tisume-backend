@@ -1,6 +1,6 @@
-    require('dotenv').config();
-    const { applyFallbacks } = require('./Utils/fallbackUtils');
-    const { parseAndValidateServices, addSessionIdToItems } = require('./Utils/serviceUtils');
+    require('dotenv').config()
+    const { applyFallbacks } = require('./Utils/fallbackUtils')
+    const { parseAndValidateServices, addSessionIdToItems } = require('./Utils/serviceUtils')
     const { buildPrompt } = require('./Utils/openaiUtils');
     const express = require('express');
     const cors = require('cors');
