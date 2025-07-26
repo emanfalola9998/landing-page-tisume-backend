@@ -1,5 +1,5 @@
 function parseAndValidateServices(rawOutput) {
-
+    console.log("rawOutput: ", rawOutput)
     if (typeof rawOutput !== 'string') {
     throw new Error('❌ AT parseAndValidationMethod:  rawOutput must be a string');
   }
