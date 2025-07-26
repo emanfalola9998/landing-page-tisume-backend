@@ -10,7 +10,6 @@
 
     const axios = require('axios');
     
-
     const app = express();
 
     // implementation without n8n
@@ -41,6 +40,20 @@
     AppointmentAddon.sync()
 
 app.use(express.json()); // Make sure this is BEFORE the route handlers
+
+app.options('*', (req, res) => {
+  if (
+    req.headers.origin === 'https://landingpageaiexample.netlify.app' &&
+    req.headers['access-control-request-method']
+  ) {
+    res.setHeader('Access-Control-Allow-Origin', 'https://landingpageaiexample.netlify.app');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    return res.sendStatus(204);
+  }
+
+  res.sendStatus(404);
+});
 
 
 app.post('/api/proxy/service-submit', async (req, res) => {
@@ -172,6 +185,43 @@ function validateService(service) {
   );
 }
 
+function parseAndValidateServices(rawOutput) {
+  // 1. Strip markdown backticks
+  const cleaned = rawOutput.replace(/```json|```/g, '').trim();
+
+  // 2. Try to parse JSON
+  let services;
+  try {
+    services = JSON.parse(cleaned);
+  } catch (err) {
+    throw new Error('❌ Failed to parse JSON from output field: ' + err.message);
+  }
+
+  // 3. Filter valid services
+  const validServices = services.filter(service =>
+    service.name?.trim() &&
+    service.description?.trim() &&
+    service.price?.toString().trim()
+  );
+
+  // 4. Error if none valid
+  if (validServices.length === 0) {
+    throw new Error('❌ No valid service entries found after validation.');
+  }
+
+  // 5. Return formatted items (optionally adapt shape for DB)
+  return validServices;
+}
+
+
+function addSessionIdToItems(items) {
+  const sessionId = Date.now().toString();
+
+  return items.map(item => ({
+    ...item,
+    sessionId
+  }));
+}
 
 app.post('/webhook/service-upload', async (req, res) => {
   const textContent = req.body.textContent;
@@ -180,13 +230,16 @@ app.post('/webhook/service-upload', async (req, res) => {
     return res.status(400).json({ error: 'Missing textContent field' });
   }
 
+  const textWithSessionID = addSessionIdToItems(textContent)
+
   try {
-    const prompt = buildPrompt(textContent);
+        
+    const prompt = buildPrompt(textWithSessionID);
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [{ role: 'user', content: prompt }],
-      temperature: 0.3,
+      temperature: 0,
     });
 
     let rawOutput = completion.choices[0].message.content.trim();
@@ -202,32 +255,40 @@ app.post('/webhook/service-upload', async (req, res) => {
       return res.status(400).json({ error: 'Invalid JSON format from OpenAI.' });
     }
 
+
+
     const jsonToParse = match[0];
+    console.log("match: ", match)
 
-    let parsedServices;
+
+
+    let parsedServices = parseAndValidateServices(jsonToParse)
+
+    // try {
+    //   parsedServices = JSON.parse(jsonToParse);
+    // } catch (parseErr) {
+    //   console.error('❌ JSON parsing failed:', parseErr.message);
+    //   console.error('🪵 Raw JSON string:', jsonToParse);
+    //   return res.status(400).json({ error: 'Malformed JSON from OpenAI.' });
+    // }
+
+    // // Fallbacks and validation
+    // const validServices = parsedServices
+    //   .filter(s => s.name?.trim() && s.description?.trim() && s.price !== undefined)
+    //   .map(applyFallbacks);
+
+    // if (validServices.length === 0) {
+    //   return res.status(400).json({ error: 'No valid service entries found.' });
+    // }
+
+    validatedServices = applyFallbacks(parsedServices)
+
     try {
-      parsedServices = JSON.parse(jsonToParse);
-    } catch (parseErr) {
-      console.error('❌ JSON parsing failed:', parseErr.message);
-      console.error('🪵 Raw JSON string:', jsonToParse);
-      return res.status(400).json({ error: 'Malformed JSON from OpenAI.' });
-    }
-
-    // Fallbacks and validation
-    const validServices = parsedServices
-      .filter(s => s.name?.trim() && s.description?.trim() && s.price !== undefined)
-      .map(applyFallbacks);
-
-    if (validServices.length === 0) {
-      return res.status(400).json({ error: 'No valid service entries found.' });
-    }
-
-    try {
-  console.log('🚀 Submitting services:', JSON.stringify(validServices, null, 2));
+  console.log('🚀 Submitting services:', JSON.stringify(validatedServices, null, 2));
 
   const submitRes = await axios.post(
     'https://landing-page-tisume-backend-production.up.railway.app/api/service-submit',
-    validServices
+    validatedServices
   );
 
   console.log('🛠 Backend response:', submitRes.status, JSON.stringify(submitRes.data, null, 2));
@@ -387,29 +448,27 @@ If you are unsure about a field, use empty string, 0, or null.
  * Fallbacks for missing fields
  */
 function applyFallbacks(service) {
-  const cleanAddons = Array.isArray(service.addons)
-    ? service.addons
-        .filter(a => a && a.name && typeof a.name === 'string')
-        .map(a => ({
-          name: a.name || 'Untitled Addon',
-          price: typeof a.price === 'number' ? a.price : 0,
-          duration: typeof a.duration === 'number' ? a.duration : 0,
-          description: a.description || ''
-        }))
-    : [];
+   const fallbackFields = [
+    'category',
+    'aftercareDescription',
+    'serviceFor',
+    'duration',
+    'priceType',
+    'pricingName'
+  ];
 
-  return {
-    ...service,
-    category: service.category || 'N/A',
-    aftercareDescription: service.aftercareDescription || 'N/A',
-    serviceFor: service.serviceFor || 'N/A',
-    duration: typeof service.duration === 'number' ? service.duration : 0,
-    priceType: service.priceType || 'N/A',
-    pricingName: service.pricingName || 'N/A',
-    addons: cleanAddons
-  };
+  return services.map(service => {
+    const updated = { ...service };
+
+    fallbackFields.forEach(field => {
+      if (!updated[field]) {
+        updated[field] = 'N/A';
+      }
+    });
+
+    return updated;
+  });
 }
-
 
 
 module.exports = {
@@ -418,7 +477,7 @@ module.exports = {
   AppointmentAddon,
 };
 
-// old route: https://ronaldo9860.app.n8n.cloud/webhook-test/service-submit
+
     
 
     const PORT = process.env.PORT || 3001;  // fallback to 3001 if PORT is not set locally
