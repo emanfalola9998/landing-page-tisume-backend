@@ -221,7 +221,9 @@ app.post('/webhook/service-upload', async (req, res) => {
     try{
         const serviceWithSessionID = addSessionId(jsonToParse)
         let parsedServices = parseAndValidateServices(serviceWithSessionID)
-        validatedServices = applyFallbacks(parsedServices)
+        const validatedServices = applyFallbacks(parsedServices)
+        console.log(validatedServices)
+
 
     } catch (error) {
             console.error('Error in parseAndValidateServices:', error.message);
