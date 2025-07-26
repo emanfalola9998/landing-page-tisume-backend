@@ -197,7 +197,7 @@ app.post('/webhook/service-upload', async (req, res) => {
       temperature: 0,
     });
 
-    let rawOutput = completion.choices[0].message.content.trim();
+    let rawOutput = completion.choices[0].message.content.toString.trim();
     
     console.log("typeof: ", typeof rawOutput)
 

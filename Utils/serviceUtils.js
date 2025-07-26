@@ -1,9 +1,9 @@
 function parseAndValidateServices(rawOutput) {
 
     if (typeof rawOutput !== 'string') {
-    throw new Error('❌ rawOutput must be a string');
+    throw new Error('❌ AT parseAndValidationMethod:  rawOutput must be a string');
   }
-  const cleaned = rawOutput.replace(/```json|```/g, '').trim();
+  const cleaned = rawOutput.toString.replace(/```json|```/g, '').trim();
 
   let services;
   try {
