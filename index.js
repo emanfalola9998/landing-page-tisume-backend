@@ -185,7 +185,7 @@ app.post('/webhook/service-upload', async (req, res) => {
     return res.status(400).json({ error: 'Missing textContent field' });
   }
 
-  const textWithSessionID = addSessionId(textContent)
+//   const textWithSessionID = addSessionId(textContent)
 
   try {
         
@@ -216,8 +216,9 @@ app.post('/webhook/service-upload', async (req, res) => {
     console.log("match: ", match)
 
 
+    const serviceWithSessionID = addSessionId(jsonToParse)
+    let parsedServices = parseAndValidateServices(serviceWithSessionID)
 
-    let parsedServices = parseAndValidateServices(jsonToParse)
 
     // try {
     //   parsedServices = JSON.parse(jsonToParse);
