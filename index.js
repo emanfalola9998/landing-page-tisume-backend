@@ -201,6 +201,9 @@ app.post('/webhook/service-upload', async (req, res) => {
     console.log('🧪 Raw OpenAI Output:', rawOutput);
 
     // Clean code blocks and isolate JSON
+    if (typeof rawOutput !== 'string') {
+        throw new Error('Expected rawOutput to be a string but got ' + typeof rawOutput);
+    }
     rawOutput = rawOutput.replace(/```(?:json)?/g, '').replace(/```/g, '').trim();
 
     // Extract the first JSON array
