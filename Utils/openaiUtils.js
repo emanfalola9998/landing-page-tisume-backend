@@ -123,3 +123,5 @@ If you are unsure about a field, use empty string, 0, or null.
     ${text}
     `.trim();
 }
+
+module.exports = { buildPrompt }
