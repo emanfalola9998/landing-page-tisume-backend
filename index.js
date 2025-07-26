@@ -12,7 +12,6 @@
     const { OpenAI } = require('openai'); // implementation without n8n
 
     const axios = require('axios');
-    
     const app = express();
 
     // implementation without n8n
@@ -41,21 +40,6 @@
     BusinessSubCategory.sync()
     Addon.sync()
     AppointmentAddon.sync()
-
-
-// app.options('*', (req, res) => {
-//   if (
-//     req.headers.origin === 'https://landingpageaiexample.netlify.app' &&
-//     req.headers['access-control-request-method']
-//   ) {
-//     res.setHeader('Access-Control-Allow-Origin', 'https://landingpageaiexample.netlify.app');
-//     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-//     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-//     return res.sendStatus(204);
-//   }
-
-//   res.sendStatus(404);
-// });
 
 
 app.post('/api/proxy/service-submit', async (req, res) => {
@@ -176,8 +160,6 @@ app.post('/api/service-submit', async (req, res) => {
 // implementation without n8n
 
 
-
-
 app.post('/webhook/service-upload', async (req, res) => {
   const textContent = req.body.textContent;
 
@@ -185,7 +167,6 @@ app.post('/webhook/service-upload', async (req, res) => {
     return res.status(400).json({ error: 'Missing textContent field' });
   }
 
-//   const textWithSessionID = addSessionId(textContent)
 
   try {
         
@@ -198,18 +179,6 @@ app.post('/webhook/service-upload', async (req, res) => {
     });
 
     let rawOutput = completion.choices[0].message.content.toString().trim();
-    
-    console.log("typeof: ", typeof rawOutput)
-
-    if (typeof rawOutput === 'string') {
-    rawOutput;
-    } else if (rawOutput && typeof rawOutput === 'object') {
-    // If it's JSON or object, convert to string safely
-    rawOutput = JSON.stringify(rawOutput);
-    } else {
-    // Fallback to empty string or throw error as needed
-    rawOutput 
-    }
     console.log('🧪 Raw OpenAI Output:', rawOutput);
 
 
@@ -224,37 +193,12 @@ app.post('/webhook/service-upload', async (req, res) => {
 
 
     const jsonToParse = match[0];
-    
     let parsedServices = parseAndValidateServices(jsonToParse)
     console.log("parsedServices: ", parsedServices)
 
-    // const serviceWithSessionID = addSessionId(parsedServices)
 
     const validatedServices = applyFallbacks(parsedServices)
     console.log("validatedServices: ", validatedServices)
-
-
- 
-
-
-
-
-    // try {
-    //   parsedServices = JSON.parse(jsonToParse);
-    // } catch (parseErr) {
-    //   console.error('❌ JSON parsing failed:', parseErr.message);
-    //   console.error('🪵 Raw JSON string:', jsonToParse);
-    //   return res.status(400).json({ error: 'Malformed JSON from OpenAI.' });
-    // }
-
-    // // Fallbacks and validation
-    // const validServices = parsedServices
-    //   .filter(s => s.name?.trim() && s.description?.trim() && s.price !== undefined)
-    //   .map(applyFallbacks);
-
-    // if (validServices.length === 0) {
-    //   return res.status(400).json({ error: 'No valid service entries found.' });
-    // }
 
 
     try {
@@ -288,18 +232,11 @@ app.post('/webhook/service-upload', async (req, res) => {
 });
 
 
-
-
-
-
 module.exports = {
   Service,
   Addon,
   AppointmentAddon,
 };
-
-
-    
 
     const PORT = process.env.PORT || 3001;  // fallback to 3001 if PORT is not set locally
 
