@@ -218,9 +218,18 @@ app.post('/webhook/service-upload', async (req, res) => {
     const jsonToParse = match[0];
     console.log("match: ", match)
 
+    try{
+        const serviceWithSessionID = addSessionId(jsonToParse)
+        let parsedServices = parseAndValidateServices(serviceWithSessionID)
+        validatedServices = applyFallbacks(parsedServices)
 
-    const serviceWithSessionID = addSessionId(jsonToParse)
-    let parsedServices = parseAndValidateServices(serviceWithSessionID)
+    } catch (error) {
+            console.error('Error in parseAndValidateServices:', error.message);
+            console.log('Type of rawOutput:', typeof rawOutput);
+            console.log('Value of rawOutput:', rawOutput);
+    }
+
+
 
 
     // try {
@@ -240,7 +249,6 @@ app.post('/webhook/service-upload', async (req, res) => {
     //   return res.status(400).json({ error: 'No valid service entries found.' });
     // }
 
-    validatedServices = applyFallbacks(parsedServices)
 
     try {
   console.log('🚀 Submitting services:', JSON.stringify(validatedServices, null, 2));
