@@ -198,6 +198,18 @@ app.post('/webhook/service-upload', async (req, res) => {
     });
 
     let rawOutput = completion.choices[0].message.content.trim();
+    
+    console.log("typeof: ", typeof rawOutput)
+
+    if (typeof response === 'string') {
+    rawOutput = response;
+    } else if (response && typeof response === 'object') {
+    // If it's JSON or object, convert to string safely
+    rawOutput = JSON.stringify(response);
+    } else {
+    // Fallback to empty string or throw error as needed
+    rawOutput = String(response || '');
+    }
     console.log('🧪 Raw OpenAI Output:', rawOutput);
 
     // Clean code blocks and isolate JSON
