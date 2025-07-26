@@ -227,18 +227,15 @@ app.post('/webhook/service-upload', async (req, res) => {
     const jsonToParse = match[0];
     console.log("match: ", match)
 
-    try{
-        const serviceWithSessionID = addSessionId(jsonToParse)
-        let parsedServices = parseAndValidateServices(serviceWithSessionID)
-        const validatedServices = applyFallbacks(parsedServices)
-        console.log(validatedServices)
+    const serviceWithSessionID = addSessionId(jsonToParse)
+    console.log("serviceWithSessionID :", serviceWithSessionID)
+    let parsedServices = parseAndValidateServices(serviceWithSessionID)
+    console.log("parsedServices: ", parsedServices)
+    const validatedServices = applyFallbacks(parsedServices)
+    console.log("validatedServices: ", validatedServices)
 
 
-    } catch (error) {
-            console.error('Error in parseAndValidateServices:', error.message);
-            console.log('Type of rawOutput:', typeof rawOutput);
-            console.log('Value of rawOutput:', rawOutput);
-    }
+ 
 
 
 
