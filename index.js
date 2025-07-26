@@ -218,8 +218,8 @@ app.post('/webhook/service-upload', async (req, res) => {
     // Extract the first JSON array
     const match = rawOutput.match(/\[\s*{[\s\S]*}\s*]/);
     if (!match) {
-      console.error('❌ No valid JSON array found');
-      return res.status(400).json({ error: 'Invalid JSON format from OpenAI.' });
+        console.error('❌ No valid JSON array found');
+        return res.status(400).json({ error: 'Invalid JSON format from OpenAI.' });
     }
 
 
@@ -228,7 +228,7 @@ app.post('/webhook/service-upload', async (req, res) => {
     console.log("match: ", match)
 
     const serviceWithSessionID = addSessionId(jsonToParse)
-    console.log("serviceWithSessionID :", serviceWithSessionID)
+    // console.log("serviceWithSessionID :", serviceWithSessionID)
     let parsedServices = parseAndValidateServices(serviceWithSessionID)
     console.log("parsedServices: ", parsedServices)
     const validatedServices = applyFallbacks(parsedServices)
