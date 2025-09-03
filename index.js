@@ -14,12 +14,10 @@
     const axios = require('axios');
     const app = express();
 
-    // implementation without n8n
-
     app.use(express.json({ limit: '2mb' })); // for JSON
     app.use(express.urlencoded({ extended: true })); // for form submissions
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-// end --- implementation without n8n
+
 
 
     const FRONTEND_ORIGIN = "https://landingpageaiexample.netlify.app"
